@@ -99,12 +99,100 @@
 
   mobileViewport.addEventListener("change", resetMobileMenu);
 
-  if (!reducedMotion.matches && "IntersectionObserver" in window) {
-    const revealTargets = document.querySelectorAll(
+  const readerArticle = document.querySelector(".assignment--reader");
+
+  if (readerArticle) {
+    const progress = document.querySelector(".reader-progress");
+    const progressFill = progress?.querySelector("span");
+    const backToTop = document.querySelector(".reader-back-to-top");
+    const tocLinks = Array.from(
+      readerArticle.querySelectorAll(".reader-toc a[href^='#']")
+    );
+    const sections = tocLinks
+      .map((link) => readerArticle.querySelector(link.getAttribute("href")))
+      .filter((section) => section instanceof HTMLElement);
+    let updateScheduled = false;
+
+    const updateReaderState = () => {
+      updateScheduled = false;
+      const scrollableHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+      const progressValue =
+        scrollableHeight > 0
+          ? Math.min(100, Math.max(0, (window.scrollY / scrollableHeight) * 100))
+          : 100;
+
+      if (progress && progressFill) {
+        progressFill.style.transform = `scaleX(${progressValue / 100})`;
+        progress.setAttribute("aria-valuenow", String(Math.round(progressValue)));
+      }
+
+      let activeSection = sections[0];
+      sections.forEach((section) => {
+        if (section.getBoundingClientRect().top <= 160) {
+          activeSection = section;
+        }
+      });
+
+      if (
+        sections.length > 0 &&
+        window.scrollY + window.innerHeight >=
+          document.documentElement.scrollHeight - 2
+      ) {
+        activeSection = sections[sections.length - 1];
+      }
+
+      tocLinks.forEach((link) => {
+        const isCurrent = link.hash === `#${activeSection?.id}`;
+        if (isCurrent) {
+          link.setAttribute("aria-current", "location");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+
+      if (backToTop) {
+        const isVisible = window.scrollY > 560;
+        backToTop.classList.toggle("is-visible", isVisible);
+        backToTop.setAttribute("aria-hidden", String(!isVisible));
+        backToTop.tabIndex = isVisible ? 0 : -1;
+      }
+    };
+
+    const scheduleReaderUpdate = () => {
+      if (updateScheduled) {
+        return;
+      }
+
+      updateScheduled = true;
+      window.requestAnimationFrame(updateReaderState);
+    };
+
+    window.addEventListener("scroll", scheduleReaderUpdate, { passive: true });
+    window.addEventListener("resize", scheduleReaderUpdate);
+    updateReaderState();
+  }
+
+  if (
+    !reducedMotion.matches &&
+    typeof window.IntersectionObserver === "function"
+  ) {
+    const revealTargets = Array.from(document.querySelectorAll(
       ".hero__copy, .portrait-frame, .intro-section, .goals-section, .contact-band, " +
         ".page-hero, .project-card, .breadcrumbs, .assignment__hero, " +
-        ".assignment-section, .assignment-pagination, .reflection-item, .related-work"
+        ".assignment-section, .assignment-pagination, .reflection-item, .related-work, .integrity-card, " +
+        ".integrity-timeline li, .integrity-principles li"
+    )).filter(
+      (target) =>
+        !(
+          target.matches(".assignment__hero") &&
+          target.closest(".assignment--reader")
+        )
     );
+
+    document
+      .querySelectorAll(".assignment--reader .reader-title, .assignment--reader .reader-student")
+      .forEach((target) => revealTargets.push(target));
 
     const observer = new IntersectionObserver(
       (entries, currentObserver) => {
