@@ -570,6 +570,32 @@ h2 em {
   font-size: 0.96rem;
 }
 
+.intro-section__title-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.65rem, 1.8vw, 1.1rem);
+}
+
+.intro-section__title-row h2 {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.intro-section__sticker {
+  flex: 0 0 auto;
+  --sticker-size: clamp(4.5rem, 7.5vw, 5.75rem);
+  width: var(--sticker-size);
+  height: var(--sticker-size);
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: 50% 34%;
+  padding: 0.2rem;
+  border: 1px solid #fff;
+  border-radius: 0.7rem;
+  background: #fff;
+  box-shadow: 0 0.35rem 0.85rem rgb(0 28 68 / 18%);
+}
+
 .intro-section .prose > p:first-child {
   color: var(--ink);
   font-size: 1.12rem;
@@ -1381,6 +1407,14 @@ h2 em {
 
   .section-heading h2 {
     font-size: clamp(2.65rem, 11vw, 3.8rem);
+  }
+
+  .intro-section__title-row {
+    gap: 0.65rem;
+  }
+
+  .intro-section__sticker {
+    --sticker-size: clamp(3.75rem, 18vw, 4.75rem);
   }
 
   .contact-band {
